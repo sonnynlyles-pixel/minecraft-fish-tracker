@@ -77,19 +77,19 @@ export const COMMON_FISH = [
     id: 'cod',
     name: 'Cod',
     category: 'common',
-    wikiImage: 'https://minecraft.wiki/images/Cod_JE2_BE2.png',
+    sprite: '/sprites/cod.png',
   },
   {
     id: 'salmon',
     name: 'Salmon',
     category: 'common',
-    wikiImage: 'https://minecraft.wiki/images/Salmon_JE2_BE2.png',
+    sprite: '/sprites/salmon.png',
   },
   {
     id: 'pufferfish',
     name: 'Pufferfish',
     category: 'common',
-    wikiImage: 'https://minecraft.wiki/images/Pufferfish_JE2_BE2.png',
+    sprite: '/sprites/pufferfish.png',
   },
 ]
 
