@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!-- Open this file in a browser, right-click each canvas and "Save image as" icon-192.png / icon-512.png -->
+<html>
+<body style="background:#0d1117;display:flex;gap:20px;padding:20px;flex-wrap:wrap">
+<script>
+function draw(size) {
+  const c = document.createElement('canvas')
+  c.width = c.height = size
+  c.title = `icon-${size}.png`
+  const ctx = c.getContext('2d')
+  ctx.fillStyle = '#14532d'
+  ctx.fillRect(0, 0, size, size)
+  ctx.fillStyle = '#4ade80'
+  const r = size * 0.1
+  ctx.beginPath()
+  ctx.roundRect(size*0.08, size*0.08, size*0.84, size*0.84, r)
+  ctx.fill()
+  ctx.fillStyle = '#14532d'
+  ctx.font = `${size*0.55}px serif`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('🎣', size/2, size/2)
+  document.body.appendChild(c)
+  const label = document.createElement('div')
+  label.style.color='white'
+  label.style.fontSize='12px'
+  label.style.textAlign='center'
+  label.textContent = `icon-${size}.png — right-click → Save`
+  document.body.appendChild(label)
+}
+draw(192)
+draw(512)
+</script>
+</body>
+</html>
