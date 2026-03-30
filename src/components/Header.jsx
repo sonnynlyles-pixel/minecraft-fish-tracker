@@ -1,6 +1,6 @@
 import { TOTAL_FISH } from '../data/fish'
 
-export default function Header({ user, progress, onSignOut, onResetClick, onStatsClick, onProfileClick }) {
+export default function Header({ user, progress, onSignOut, onResetClick, onStatsClick, onProfileClick, onLeaderboardClick }) {
   const caught = Object.keys(progress).length
   const pct = Math.round((caught / TOTAL_FISH) * 100)
 
@@ -18,6 +18,16 @@ export default function Header({ user, progress, onSignOut, onResetClick, onStat
 
           {/* User + actions */}
           <div className="flex items-center gap-2">
+            {/* Leaderboard button */}
+            <button
+              onClick={onLeaderboardClick}
+              className="font-ui text-mc-muted hover:text-mc-gold text-xs px-2 py-1 rounded border border-mc-border hover:border-mc-gold transition-colors"
+              aria-label="Leaderboard"
+              title="Leaderboard"
+            >
+              🏆
+            </button>
+
             {/* Stats button */}
             <button
               onClick={onStatsClick}

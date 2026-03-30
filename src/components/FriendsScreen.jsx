@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { collection, query, where, orderBy, startAt, endAt, getDocs, doc, getDoc } from 'firebase/firestore'
+import { collection, getDocs } from 'firebase/firestore'
 import { db } from '../firebase'
 import PublicProfileScreen from './PublicProfileScreen'
 
@@ -8,7 +8,24 @@ export default function FriendsScreen({ onClose }) {
   const [results, setResults] = useState([])
   const [searching, setSearching] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
+  const [allUsers, setAllUsers] = useState(null)
   const debounceRef = useRef(null)
+
+  // Fetch all users once on mount
+  useEffect(() => {
+    async function fetchAllUsers() {
+      try {
+        const snap = await getDocs(collection(db, 'users'))
+        const users = snap.docs
+          .map((d) => ({ uid: d.id, ...d.data() }))
+          .filter((u) => u.username != null && u.username !== '')
+        setAllUsers(users)
+      } catch {
+        setAllUsers([])
+      }
+    }
+    fetchAllUsers()
+  }, [])
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -20,28 +37,19 @@ export default function FriendsScreen({ onClose }) {
     }
 
     setSearching(true)
-    debounceRef.current = setTimeout(async () => {
-      try {
-        const term = searchTerm.trim()
-        const q = query(
-          collection(db, 'users'),
-          orderBy('username'),
-          startAt(term),
-          endAt(term + '\uf8ff')
-        )
-        const snap = await getDocs(q)
-        const users = snap.docs.map((d) => ({ uid: d.id, ...d.data() }))
-        setResults(users)
-      } catch {
-        setResults([])
-      }
+    debounceRef.current = setTimeout(() => {
+      const term = searchTerm.trim().toLowerCase()
+      const filtered = (allUsers ?? []).filter((u) =>
+        u.username.toLowerCase().startsWith(term)
+      )
+      setResults(filtered)
       setSearching(false)
-    }, 400)
+    }, 300)
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [searchTerm])
+  }, [searchTerm, allUsers])
 
   return (
     <>

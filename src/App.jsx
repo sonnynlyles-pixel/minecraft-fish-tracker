@@ -13,6 +13,7 @@ import UpdateBanner from './components/UpdateBanner'
 import StatsScreen from './components/StatsScreen'
 import ProfileScreen from './components/ProfileScreen'
 import FriendsScreen from './components/FriendsScreen'
+import LeaderboardScreen from './components/LeaderboardScreen'
 import CelebrationOverlay from './components/CelebrationOverlay'
 
 // Milestone thresholds (percentage of total fish)
@@ -29,6 +30,7 @@ export default function App() {
   const [showStats, setShowStats] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
   const [showFriends, setShowFriends] = useState(false)
+  const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [celebration, setCelebration] = useState(null)
 
   // Track which milestones have already been triggered this session
@@ -108,6 +110,7 @@ export default function App() {
         onResetClick={() => setShowReset(true)}
         onStatsClick={() => setShowStats(true)}
         onProfileClick={() => setShowProfile(true)}
+        onLeaderboardClick={() => setShowLeaderboard(true)}
       />
 
       <main className="px-4 py-4 pb-safe max-w-2xl mx-auto">
@@ -181,6 +184,13 @@ export default function App() {
       {showFriends && (
         <FriendsScreen
           onClose={() => setShowFriends(false)}
+        />
+      )}
+
+      {showLeaderboard && (
+        <LeaderboardScreen
+          currentUserId={user.uid}
+          onClose={() => setShowLeaderboard(false)}
         />
       )}
 

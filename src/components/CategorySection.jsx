@@ -18,7 +18,9 @@ export default function CategorySection({ title, icon, fish, progress, onToggle,
   const [sort, setSort] = useState('default')
 
   const filtered = useMemo(() => {
-    const s = filters.search.toLowerCase()
+    // Map color aliases before searching (e.g. "plum" → "purple")
+    const rawSearch = filters.search.toLowerCase()
+    const s = rawSearch === 'plum' ? 'purple' : rawSearch
     return fish.filter((f) => {
       if (s && !f.name.toLowerCase().includes(s)
            && !f.bodyColorName?.toLowerCase().includes(s)
