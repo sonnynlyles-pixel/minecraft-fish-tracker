@@ -19,7 +19,7 @@ export default function App() {
   const tropicalFish = useMemo(() => getTropicalFish(), [])
 
   // Loading
-  if (user === undefined || signingIn) {
+  if (user === undefined || loading) {
     return (
       <div className="min-h-screen bg-mc-bg flex items-center justify-center">
         <div className="font-minecraft text-mc-green animate-pulse" style={{ fontSize: '9px' }}>Loading…</div>
