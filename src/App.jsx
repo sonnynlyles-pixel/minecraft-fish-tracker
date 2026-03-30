@@ -7,6 +7,7 @@ import Header from './components/Header'
 import CategorySection from './components/CategorySection'
 import FishModal from './components/FishModal'
 import ResetModal from './components/ResetModal'
+import UpdateBanner from './components/UpdateBanner'
 
 export default function App() {
   const { user, signInWithGoogle, signOutUser } = useAuth()
@@ -105,6 +106,9 @@ export default function App() {
           onCancel={() => setShowReset(false)}
         />
       )}
+
+      {/* Auto-update banner */}
+      <UpdateBanner />
     </div>
   )
 }
