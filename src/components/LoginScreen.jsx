@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import OceanBackground from './OceanBackground'
 
 export default function LoginScreen({ onSignIn, onSignUp, authError, loading }) {
   const [mode, setMode] = useState('signin') // 'signin' | 'signup'
@@ -15,8 +16,10 @@ export default function LoginScreen({ onSignIn, onSignUp, authError, loading }) 
   }
 
   return (
-    <div className="min-h-screen bg-mc-bg flex flex-col items-center justify-center p-6">
-      <div className="flex flex-col items-center gap-8 max-w-sm w-full">
+    <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ position: 'relative' }}>
+      <OceanBackground />
+      <div className="flex flex-col items-center gap-8 max-w-sm w-full" style={{ position: 'relative', zIndex: 1 }}>
+        <div className="w-full flex flex-col items-center gap-8 bg-black/60 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
 
         {/* Logo */}
         <div className="flex flex-col items-center gap-4">
@@ -110,6 +113,7 @@ export default function LoginScreen({ onSignIn, onSignUp, authError, loading }) 
         <p className="font-ui text-mc-muted text-xs text-center">
           Your progress syncs across all devices.
         </p>
+        </div>
       </div>
     </div>
   )

@@ -52,10 +52,15 @@ export default function FriendsScreen({ onClose, currentUserId, inline = false }
   }, [currentUserId])
 
   // Filter client-side using includes for partial matches
+  // Check both username (lowercased) and usernameLower field for case-insensitive search
   const results = searchTerm.trim()
-    ? allUsers.filter((u) =>
-        u.username.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+    ? allUsers.filter((u) => {
+        const term = searchTerm.toLowerCase()
+        return (
+          u.username.toLowerCase().includes(term) ||
+          (u.usernameLower && u.usernameLower.includes(term))
+        )
+      })
     : []
 
   const content = (

@@ -71,7 +71,7 @@ export function useUserProfile(user) {
         }
 
         const ref = doc(db, 'users', user.uid)
-        const updated = { ...profile, username }
+        const updated = { ...profile, username, usernameLower: username.toLowerCase() }
         await setDoc(ref, updated, { merge: true })
         setProfile(updated)
         return true
