@@ -2,6 +2,7 @@ import { useState, useMemo, useRef } from 'react'
 import { useAuth } from './hooks/useAuth'
 import { useProgress } from './hooks/useProgress'
 import { useHaptic } from './hooks/useHaptic'
+import { useUserProfile } from './hooks/useUserProfile'
 import { COMMON_FISH, getTropicalFish, TOTAL_FISH } from './data/fish'
 import LoginScreen from './components/LoginScreen'
 import Header from './components/Header'
@@ -11,6 +12,7 @@ import ResetModal from './components/ResetModal'
 import UpdateBanner from './components/UpdateBanner'
 import StatsScreen from './components/StatsScreen'
 import ProfileScreen from './components/ProfileScreen'
+import FriendsScreen from './components/FriendsScreen'
 import CelebrationOverlay from './components/CelebrationOverlay'
 
 // Milestone thresholds (percentage of total fish)
@@ -20,11 +22,13 @@ export default function App() {
   const { user, authError, loading, signIn, signUp, signOutUser } = useAuth()
   const { progress, loading: progressLoading, catchFish, uncatchFish, updateNotes, resetAll } = useProgress(user?.uid)
   const { trigger } = useHaptic()
+  const { profile, setUsername, usernameError } = useUserProfile(user ?? null)
 
   const [modalFish, setModalFish] = useState(null)
   const [showReset, setShowReset] = useState(false)
   const [showStats, setShowStats] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
+  const [showFriends, setShowFriends] = useState(false)
   const [celebration, setCelebration] = useState(null)
 
   // Track which milestones have already been triggered this session
@@ -167,6 +171,16 @@ export default function App() {
           progress={progress}
           onSignOut={signOutUser}
           onClose={() => setShowProfile(false)}
+          profile={profile}
+          setUsername={setUsername}
+          usernameError={usernameError}
+          onFriendsClick={() => { setShowProfile(false); setShowFriends(true) }}
+        />
+      )}
+
+      {showFriends && (
+        <FriendsScreen
+          onClose={() => setShowFriends(false)}
         />
       )}
 
