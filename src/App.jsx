@@ -19,6 +19,13 @@ import CelebrationOverlay from './components/CelebrationOverlay'
 // Milestone thresholds (percentage of total fish)
 const MILESTONES = [25, 50, 75, 100]
 
+const TABS = [
+  { id: 'fish',        emoji: '🐟', label: 'Fish'        },
+  { id: 'leaderboard', emoji: '🏆', label: 'Leaderboard' },
+  { id: 'social',      emoji: '👥', label: 'Social'      },
+  { id: 'profile',     emoji: '👤', label: 'Profile'     },
+]
+
 export default function App() {
   const { user, authError, loading, signIn, signUp, signOutUser } = useAuth()
   const { progress, loading: progressLoading, catchFish, uncatchFish, updateNotes, resetAll } = useProgress(user?.uid)
@@ -28,10 +35,8 @@ export default function App() {
   const [modalFish, setModalFish] = useState(null)
   const [showReset, setShowReset] = useState(false)
   const [showStats, setShowStats] = useState(false)
-  const [showProfile, setShowProfile] = useState(false)
-  const [showFriends, setShowFriends] = useState(false)
-  const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [celebration, setCelebration] = useState(null)
+  const [activeTab, setActiveTab] = useState('fish')
 
   // Track which milestones have already been triggered this session
   const seenMilestones = useRef(new Set())
@@ -107,42 +112,84 @@ export default function App() {
         user={user}
         progress={progress}
         onSignOut={signOutUser}
-        onResetClick={() => setShowReset(true)}
-        onStatsClick={() => setShowStats(true)}
-        onProfileClick={() => setShowProfile(true)}
-        onLeaderboardClick={() => setShowLeaderboard(true)}
       />
 
-      <main className="px-4 py-4 pb-safe max-w-2xl mx-auto">
-        {progressLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="font-minecraft text-mc-green animate-pulse" style={{ fontSize: '9px' }}>
-              Loading progress…
+      <main className="px-4 py-4 pb-24 max-w-2xl mx-auto">
+        {activeTab === 'fish' && (
+          progressLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="font-minecraft text-mc-green animate-pulse" style={{ fontSize: '9px' }}>
+                Loading progress…
+              </div>
             </div>
-          </div>
-        ) : (
-          <>
-            <CategorySection
-              title="Common Fish"
-              icon="🐟"
-              fish={COMMON_FISH}
-              progress={progress}
-              onToggle={handleToggle}
-              onOpenModal={setModalFish}
-              showFilters={false}
-            />
-            <CategorySection
-              title="Tropical Fish"
-              icon="🐠"
-              fish={tropicalFish}
-              progress={progress}
-              onToggle={handleToggle}
-              onOpenModal={setModalFish}
-              showFilters={true}
-            />
-          </>
+          ) : (
+            <>
+              <CategorySection
+                title="Common Fish"
+                icon="🐟"
+                fish={COMMON_FISH}
+                progress={progress}
+                onToggle={handleToggle}
+                onOpenModal={setModalFish}
+                showFilters={false}
+              />
+              <CategorySection
+                title="Tropical Fish"
+                icon="🐠"
+                fish={tropicalFish}
+                progress={progress}
+                onToggle={handleToggle}
+                onOpenModal={setModalFish}
+                showFilters={true}
+              />
+            </>
+          )
+        )}
+
+        {activeTab === 'leaderboard' && (
+          <LeaderboardScreen
+            currentUserId={user.uid}
+            inline={true}
+          />
+        )}
+
+        {activeTab === 'social' && (
+          <FriendsScreen
+            currentUserId={user.uid}
+            inline={true}
+          />
+        )}
+
+        {activeTab === 'profile' && (
+          <ProfileScreen
+            user={user}
+            progress={progress}
+            onSignOut={signOutUser}
+            profile={profile}
+            setUsername={setUsername}
+            usernameError={usernameError}
+            onResetClick={() => setShowReset(true)}
+            onStatsClick={() => setShowStats(true)}
+            inline={true}
+          />
         )}
       </main>
+
+      {/* Bottom tab bar */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-mc-bg border-t border-mc-border flex">
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex-1 flex flex-col items-center py-3 transition-colors ${
+              activeTab === tab.id ? 'text-mc-green' : 'text-mc-muted'
+            }`}
+          >
+            <span className="text-xl leading-none">{tab.emoji}</span>
+            <span className="font-ui text-xs mt-1">{tab.label}</span>
+          </button>
+        ))}
+      </nav>
 
       {modalFish && (
         <FishModal
@@ -165,32 +212,6 @@ export default function App() {
         <StatsScreen
           progress={progress}
           onClose={() => setShowStats(false)}
-        />
-      )}
-
-      {showProfile && (
-        <ProfileScreen
-          user={user}
-          progress={progress}
-          onSignOut={signOutUser}
-          onClose={() => setShowProfile(false)}
-          profile={profile}
-          setUsername={setUsername}
-          usernameError={usernameError}
-          onFriendsClick={() => { setShowProfile(false); setShowFriends(true) }}
-        />
-      )}
-
-      {showFriends && (
-        <FriendsScreen
-          onClose={() => setShowFriends(false)}
-        />
-      )}
-
-      {showLeaderboard && (
-        <LeaderboardScreen
-          currentUserId={user.uid}
-          onClose={() => setShowLeaderboard(false)}
         />
       )}
 

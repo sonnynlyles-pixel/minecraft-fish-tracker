@@ -1,6 +1,6 @@
 import { TOTAL_FISH } from '../data/fish'
 
-export default function Header({ user, progress, onSignOut, onResetClick, onStatsClick, onProfileClick, onLeaderboardClick }) {
+export default function Header({ user, progress, onSignOut }) {
   const caught = Object.keys(progress).length
   const pct = Math.round((caught / TOTAL_FISH) * 100)
 
@@ -16,65 +16,13 @@ export default function Header({ user, progress, onSignOut, onResetClick, onStat
             </span>
           </div>
 
-          {/* User + actions */}
-          <div className="flex items-center gap-2">
-            {/* Leaderboard button */}
-            <button
-              onClick={onLeaderboardClick}
-              className="font-ui text-mc-muted hover:text-mc-gold text-xs px-2 py-1 rounded border border-mc-border hover:border-mc-gold transition-colors"
-              aria-label="Leaderboard"
-              title="Leaderboard"
-            >
-              🏆
-            </button>
-
-            {/* Stats button */}
-            <button
-              onClick={onStatsClick}
-              className="font-ui text-mc-muted hover:text-mc-blue text-xs px-2 py-1 rounded border border-mc-border hover:border-mc-blue transition-colors"
-              aria-label="Stats"
-              title="Stats"
-            >
-              📊
-            </button>
-
-            <button
-              onClick={onResetClick}
-              className="font-ui text-mc-muted hover:text-red-400 text-xs px-2 py-1 rounded border border-mc-border hover:border-red-400 transition-colors"
-            >
-              Reset
-            </button>
-
-            {/* Avatar — opens profile */}
-            {user?.photoURL ? (
-              <button
-                onClick={onProfileClick}
-                className="rounded-full border-2 border-mc-border hover:border-mc-green transition-colors"
-                aria-label="Profile"
-              >
-                <img
-                  src={user.photoURL}
-                  alt={user.displayName}
-                  className="w-8 h-8 rounded-full block"
-                />
-              </button>
-            ) : (
-              <button
-                onClick={onProfileClick}
-                className="font-ui text-mc-muted hover:text-mc-text text-xs px-2 py-1 rounded border border-mc-border transition-colors"
-                aria-label="Profile"
-              >
-                👤
-              </button>
-            )}
-
-            <button
-              onClick={onSignOut}
-              className="font-ui text-mc-muted hover:text-mc-text text-xs px-2 py-1 rounded border border-mc-border transition-colors"
-            >
-              Out
-            </button>
-          </div>
+          {/* Sign out */}
+          <button
+            onClick={onSignOut}
+            className="font-ui text-mc-muted hover:text-mc-text text-xs px-2 py-1 rounded border border-mc-border transition-colors"
+          >
+            Out
+          </button>
         </div>
 
         {/* Progress bar */}

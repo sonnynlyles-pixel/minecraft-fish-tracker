@@ -10,7 +10,7 @@ export const COLORS = [
   { id: 7,  name: 'Gray',       hex: '#474F52' },
   { id: 8,  name: 'Light Gray', hex: '#9D9D97' },
   { id: 9,  name: 'Cyan',       hex: '#169C9C' },
-  { id: 10, name: 'Purple',     hex: '#8932B8' },
+  { id: 10, name: 'Plum',       hex: '#8932B8' },
   { id: 11, name: 'Blue',       hex: '#3C44AA' },
   { id: 12, name: 'Brown',      hex: '#835432' },
   { id: 13, name: 'Green',      hex: '#5E7C16' },
