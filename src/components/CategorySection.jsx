@@ -78,24 +78,55 @@ export default function CategorySection({ title, icon, fish, progress, onToggle,
     <section className="mb-6">
       {/* Section header */}
       <button
-        className="w-full flex items-center justify-between p-4 bg-mc-card border border-mc-border rounded-xl mb-2 hover:border-mc-green/50 transition-colors"
+        className="w-full flex items-center justify-between p-4 mb-2 transition-colors"
+        style={{
+          background: 'rgba(0,0,0,0.80)',
+          border: '2px solid #555555',
+          borderBottom: '2px solid #222222',
+          borderRight: '2px solid #222222',
+          boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.05)',
+          borderRadius: '2px',
+        }}
         onClick={() => setOpen((o) => !o)}
       >
         <div className="flex items-center gap-3">
           <span className="text-xl">{icon}</span>
           <div className="text-left">
-            <h2 className="font-minecraft text-mc-text" style={{ fontSize: '9px' }}>{title}</h2>
-            <p className="font-ui text-mc-muted text-xs mt-0.5">
+            <h2
+              className="font-minecraft"
+              style={{ fontSize: '9px', color: '#FFFFFF', textShadow: '1px 1px #000' }}
+            >
+              {title}
+            </h2>
+            <p className="font-ui text-xs mt-0.5" style={{ color: '#AAAAAA', textShadow: '1px 1px #000' }}>
               {caught} / {fish.length} caught · {pct}%
             </p>
           </div>
         </div>
         {/* Mini progress + chevron */}
         <div className="flex items-center gap-3">
-          <div className="w-20 bg-mc-surface rounded-full h-1.5 border border-mc-border">
-            <div className="bg-mc-green h-full rounded-full" style={{ width: `${pct}%` }} />
+          <div
+            style={{
+              width: '80px',
+              height: '6px',
+              background: '#222222',
+              border: '1px solid #555555',
+              borderRadius: 0,
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                width: `${pct}%`,
+                height: '100%',
+                background: '#55FF55',
+                borderRadius: 0,
+              }}
+            />
           </div>
-          <span className={`text-mc-muted transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>▾</span>
+          <span style={{ color: '#AAAAAA', transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+            ▾
+          </span>
         </div>
       </button>
 
@@ -112,17 +143,20 @@ export default function CategorySection({ title, icon, fish, progress, onToggle,
 
           {/* Sort controls */}
           <div className="flex items-center gap-2 mb-3">
-            <span className="font-ui text-mc-muted text-xs shrink-0">Sort:</span>
+            <span className="font-ui text-xs shrink-0" style={{ color: '#AAAAAA', textShadow: '1px 1px #000' }}>Sort:</span>
             <div className="flex gap-1 flex-wrap">
               {SORT_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
                   onClick={() => handleSortChange(opt.value)}
-                  className={`font-ui text-xs px-2.5 py-1 rounded border transition-colors
-                    ${sort === opt.value
-                      ? 'bg-mc-green/20 border-mc-green/50 text-mc-green'
-                      : 'bg-mc-surface border-mc-border text-mc-muted hover:text-mc-text hover:border-mc-muted'
-                    }`}
+                  className="font-ui text-xs px-2.5 py-1 transition-colors"
+                  style={{
+                    background: sort === opt.value ? 'rgba(85,255,85,0.2)' : '#2a2a2a',
+                    border: sort === opt.value ? '1px solid #55FF55' : '1px solid #555555',
+                    color: sort === opt.value ? '#55FF55' : '#AAAAAA',
+                    borderRadius: '1px',
+                    textShadow: '1px 1px #000',
+                  }}
                 >
                   {opt.label}
                 </button>
@@ -131,7 +165,7 @@ export default function CategorySection({ title, icon, fish, progress, onToggle,
           </div>
 
           {filtered.length === 0 ? (
-            <div className="text-center py-12 font-ui text-mc-muted text-sm">
+            <div className="text-center py-12 font-ui text-sm" style={{ color: '#AAAAAA', textShadow: '1px 1px #000' }}>
               No fish match your filters.
             </div>
           ) : (
@@ -148,7 +182,8 @@ export default function CategorySection({ title, icon, fish, progress, onToggle,
               {paginated.length < sorted.length && (
                 <button
                   onClick={() => setPage((p) => p + 1)}
-                  className="w-full py-3 font-ui text-mc-blue text-sm hover:text-blue-300 border border-mc-border rounded-lg hover:border-mc-blue transition-colors"
+                  className="mc-btn w-full py-3"
+                  style={{ fontSize: '7px' }}
                 >
                   Load more ({sorted.length - paginated.length} remaining)
                 </button>

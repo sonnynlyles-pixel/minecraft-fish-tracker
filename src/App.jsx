@@ -16,6 +16,7 @@ import ProfileScreen from './components/ProfileScreen'
 import FriendsScreen from './components/FriendsScreen'
 import LeaderboardScreen from './components/LeaderboardScreen'
 import CelebrationOverlay from './components/CelebrationOverlay'
+import OceanBackground from './components/OceanBackground'
 
 // Milestone thresholds (percentage of total fish)
 const MILESTONES = [25, 50, 75, 100]
@@ -57,7 +58,8 @@ export default function App() {
   if (user === undefined) {
     return (
       <div className="min-h-screen bg-mc-bg flex items-center justify-center">
-        <div className="font-minecraft text-mc-green animate-pulse" style={{ fontSize: '9px' }}>Loading…</div>
+        <OceanBackground />
+        <div className="font-minecraft text-mc-green animate-pulse" style={{ fontSize: '9px', position: 'relative', zIndex: 1 }}>Loading…</div>
       </div>
     )
   }
@@ -120,105 +122,133 @@ export default function App() {
   const pendingReceivedCount = pendingReceived.length
 
   return (
-    <div className="min-h-screen bg-mc-bg text-mc-text">
-      <Header
-        user={user}
-        progress={progress}
-        onSignOut={signOutUser}
+    <div className="min-h-screen bg-mc-bg text-mc-text" style={{ position: 'relative' }}>
+      {/* Ocean background — fixed, covers entire screen */}
+      <OceanBackground />
+      {/* Dark overlay to keep content readable over ocean */}
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 1,
+          background: 'rgba(10,10,10,0.75)',
+          pointerEvents: 'none',
+        }}
+        aria-hidden="true"
       />
 
-      <main className="px-4 py-4 pb-24 max-w-2xl mx-auto">
-        {activeTab === 'fish' && (
-          progressLoading ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="font-minecraft text-mc-green animate-pulse" style={{ fontSize: '9px' }}>
-                Loading progress…
+      {/* All app content sits above the ocean + overlay */}
+      <div style={{ position: 'relative', zIndex: 2 }}>
+        <Header
+          user={user}
+          progress={progress}
+          onSignOut={signOutUser}
+        />
+
+        <main className="px-4 py-4 pb-24 max-w-2xl mx-auto">
+          {activeTab === 'fish' && (
+            progressLoading ? (
+              <div className="flex items-center justify-center py-20">
+                <div className="font-minecraft text-mc-green animate-pulse" style={{ fontSize: '9px' }}>
+                  Loading progress…
+                </div>
               </div>
-            </div>
-          ) : (
-            <>
-              <CategorySection
-                title="Common Fish"
-                icon="🐟"
-                fish={COMMON_FISH}
-                progress={progress}
-                onToggle={handleToggle}
-                onOpenModal={setModalFish}
-                showFilters={false}
-              />
-              <CategorySection
-                title="Tropical Fish"
-                icon="🐠"
-                fish={tropicalFish}
-                progress={progress}
-                onToggle={handleToggle}
-                onOpenModal={setModalFish}
-                showFilters={true}
-              />
-            </>
-          )
-        )}
+            ) : (
+              <>
+                <CategorySection
+                  title="Common Fish"
+                  icon="🐟"
+                  fish={COMMON_FISH}
+                  progress={progress}
+                  onToggle={handleToggle}
+                  onOpenModal={setModalFish}
+                  showFilters={false}
+                />
+                <CategorySection
+                  title="Tropical Fish"
+                  icon="🐠"
+                  fish={tropicalFish}
+                  progress={progress}
+                  onToggle={handleToggle}
+                  onOpenModal={setModalFish}
+                  showFilters={true}
+                />
+              </>
+            )
+          )}
 
-        {activeTab === 'leaderboard' && (
-          <LeaderboardScreen
-            currentUserId={user.uid}
-            inline={true}
-          />
-        )}
+          {activeTab === 'leaderboard' && (
+            <LeaderboardScreen
+              currentUserId={user.uid}
+              inline={true}
+            />
+          )}
 
-        {activeTab === 'social' && (
-          <FriendsScreen
-            currentUserId={user.uid}
-            inline={true}
-            friends={friends}
-            pendingReceived={pendingReceived}
-            pendingSent={pendingSent}
-            friendsLoading={friendsLoading}
-            sendFriendRequest={sendFriendRequest}
-            acceptRequest={acceptRequest}
-            declineRequest={declineRequest}
-            removeFriend={removeFriend}
-            currentProfile={profile}
-          />
-        )}
+          {activeTab === 'social' && (
+            <FriendsScreen
+              currentUserId={user.uid}
+              inline={true}
+              friends={friends}
+              pendingReceived={pendingReceived}
+              pendingSent={pendingSent}
+              friendsLoading={friendsLoading}
+              sendFriendRequest={sendFriendRequest}
+              acceptRequest={acceptRequest}
+              declineRequest={declineRequest}
+              removeFriend={removeFriend}
+              currentProfile={profile}
+            />
+          )}
 
-        {activeTab === 'profile' && (
-          <ProfileScreen
-            user={user}
-            progress={progress}
-            onSignOut={signOutUser}
-            profile={profile}
-            setUsername={setUsername}
-            usernameError={usernameError}
-            onResetClick={() => setShowReset(true)}
-            onStatsClick={() => setShowStats(true)}
-            inline={true}
-          />
-        )}
-      </main>
+          {activeTab === 'profile' && (
+            <ProfileScreen
+              user={user}
+              progress={progress}
+              onSignOut={signOutUser}
+              profile={profile}
+              setUsername={setUsername}
+              usernameError={usernameError}
+              onResetClick={() => setShowReset(true)}
+              onStatsClick={() => setShowStats(true)}
+              inline={true}
+            />
+          )}
+        </main>
 
-      {/* Bottom tab bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-mc-bg border-t border-mc-border flex">
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 flex flex-col items-center py-3 transition-colors relative ${
-              activeTab === tab.id ? 'text-mc-green' : 'text-mc-muted'
-            }`}
-          >
-            <span className="text-xl leading-none relative inline-block">
-              {tab.emoji}
-              {tab.id === 'social' && pendingReceivedCount > 0 && (
-                <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center px-1 leading-none font-ui font-bold">
-                  {pendingReceivedCount}
-                </span>
-              )}
-            </span>
-            <span className="font-ui text-xs mt-1">{tab.label}</span>
-          </button>
-        ))}
-      </nav>
+        {/* Bottom tab bar */}
+        <nav
+          className="fixed bottom-0 left-0 right-0 z-40 flex"
+          style={{
+            background: 'rgba(0,0,0,0.90)',
+            borderTop: '2px solid #555555',
+          }}
+        >
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className="flex-1 flex flex-col items-center py-3 transition-colors relative"
+              style={{
+                color: activeTab === tab.id ? '#55FF55' : '#AAAAAA',
+                borderTop: activeTab === tab.id ? '3px solid #55FF55' : '3px solid transparent',
+                background: 'transparent',
+                borderRadius: 0,
+                textShadow: '1px 1px #000',
+              }}
+            >
+              <span className="text-xl leading-none relative inline-block">
+                {tab.emoji}
+                {tab.id === 'social' && pendingReceivedCount > 0 && (
+                  <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center px-1 leading-none font-ui font-bold">
+                    {pendingReceivedCount}
+                  </span>
+                )}
+              </span>
+              <span className="font-ui text-xs mt-1">{tab.label}</span>
+            </button>
+          ))}
+        </nav>
+      </div>
 
       {modalFish && (
         <FishModal
