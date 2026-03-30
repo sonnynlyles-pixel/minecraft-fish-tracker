@@ -67,15 +67,27 @@ export function useFriends(currentUser, currentProfile) {
       }
     )
 
-    // 3. Pending sent requests
+    // 3. All sent requests (pending + accepted so we can sync accepted ones)
     const sentUnsub = onSnapshot(
       query(
         collection(db, 'friendRequests'),
         where('fromUid', '==', uid),
-        where('status', '==', 'pending')
       ),
-      (snap) => {
-        setPendingSent(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+      async (snap) => {
+        const all = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+        setPendingSent(all.filter((r) => r.status === 'pending'))
+
+        // For any newly accepted requests, add them to our friends list
+        for (const r of all.filter((r) => r.status === 'accepted')) {
+          const friendsRef = doc(db, 'users', uid, 'friends', r.toUid)
+          try {
+            await setDoc(friendsRef, {
+              uid: r.toUid,
+              username: r.toUsername,
+              addedAt: r.acceptedAt || r.createdAt,
+            }, { merge: true })
+          } catch {}
+        }
         maybeSetLoaded()
       },
       () => {
@@ -130,21 +142,20 @@ export function useFriends(currentUser, currentProfile) {
     async (request) => {
       if (!uid || !currentProfile?.username) return
       try {
-        // Update request status
-        await updateDoc(doc(db, 'friendRequests', request.id), { status: 'accepted' })
-
         const now = new Date().toISOString()
 
-        // Add to both users' friends subcollections
+        // Only write to YOUR OWN friends subcollection (rules allow this)
         await setDoc(doc(db, 'users', uid, 'friends', request.fromUid), {
           uid: request.fromUid,
           username: request.fromUsername,
           addedAt: now,
         })
-        await setDoc(doc(db, 'users', request.fromUid, 'friends', uid), {
-          uid,
-          username: currentProfile.username,
-          addedAt: now,
+
+        // Update request status to accepted — sender sees this and adds you themselves
+        await updateDoc(doc(db, 'friendRequests', request.id), {
+          status: 'accepted',
+          acceptedAt: now,
+          toUsername: currentProfile.username,
         })
       } catch (err) {
         console.error('acceptRequest error:', err)

@@ -19,7 +19,10 @@ service cloud.firestore {
         resource.data.toUid == request.auth.uid
       );
       allow create: if request.auth != null && request.resource.data.fromUid == request.auth.uid;
-      allow update: if request.auth != null && resource.data.toUid == request.auth.uid;
+      allow update: if request.auth != null && (
+        resource.data.toUid == request.auth.uid ||
+        resource.data.fromUid == request.auth.uid
+      );
     }
   }
 }
