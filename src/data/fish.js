@@ -93,6 +93,8 @@ export const COMMON_FISH = [
   },
 ]
 
+export const TROPICAL_ITEM_SPRITE = '/sprites/tropical_fish.png'
+
 // ── Generate all 3,072 tropical fish variants ────────────────────────────────
 export function generateTropicalFish() {
   const fish = []
