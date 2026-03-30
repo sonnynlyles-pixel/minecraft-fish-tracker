@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signing in — Fish Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0d1117;
+      color: #e6edf3;
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 16px;
+      padding: 32px 24px;
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+    }
+    .emoji { font-size: 48px; margin-bottom: 16px; }
+    h1 { font-family: 'Press Start 2P', monospace; font-size: 11px; color: #4ade80; line-height: 1.8; margin-bottom: 12px; }
+    p { font-size: 14px; color: #8b949e; line-height: 1.6; margin-bottom: 16px; }
+    .code-box {
+      background: #0d1117;
+      border: 2px solid #4ade80;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    .code {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 28px;
+      color: #4ade80;
+      letter-spacing: 8px;
+    }
+    .code-label { font-size: 11px; color: #8b949e; margin-top: 8px; }
+    .error { color: #f87171; font-size: 13px; margin-top: 16px; }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid #30363d;
+      border-top-color: #4ade80;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 16px auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .step { font-size: 13px; color: #e6edf3; background: #21262d; border-radius: 8px; padding: 12px 16px; text-align: left; margin-top: 16px; }
+    .step strong { color: #4ade80; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="emoji">🎣</div>
+    <h1>Fish Tracker</h1>
+    <div id="content">
+      <div class="spinner"></div>
+      <p>Signing you in…</p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'
+    import {
+      getAuth,
+      isSignInWithEmailLink,
+      signInWithEmailLink,
+      indexedDBLocalPersistence,
+      initializeAuth,
+    } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js'
+
+    const firebaseConfig = {
+      apiKey:            'AIzaSyA8d5LMm6Zyl_E3Aw3t8XIQaj8Z221qAbY',
+      authDomain:        'minecraft-fish-tracker.firebaseapp.com',
+      projectId:         'minecraft-fish-tracker',
+      storageBucket:     'minecraft-fish-tracker.firebasestorage.app',
+      messagingSenderId: '1070801702717',
+      appId:             '1:1070801702717:web:228de2c478dbee06237f54',
+    }
+
+    const app = initializeApp(firebaseConfig)
+    const auth = initializeAuth(app, { persistence: indexedDBLocalPersistence })
+    const content = document.getElementById('content')
+
+    function showError(msg) {
+      content.innerHTML = `<p class="error">⚠️ ${msg}</p><p style="margin-top:12px">Close this tab and request a new sign-in link.</p>`
+    }
+
+    function showCode(code) {
+      content.innerHTML = `
+        <p>You're signed in! Enter this code in the Fish Tracker app on your home screen:</p>
+        <div class="code-box">
+          <div class="code">${code}</div>
+          <div class="code-label">Expires in 10 minutes · One use only</div>
+        </div>
+        <div class="step">1. Open <strong>Fish Tracker</strong> from your home screen<br/>2. Tap <strong>"Have a code?"</strong><br/>3. Enter the code above</div>
+      `
+    }
+
+    async function run() {
+      if (!isSignInWithEmailLink(auth, window.location.href)) {
+        showError('This link is not a valid sign-in link.')
+        return
+      }
+
+      const email = localStorage.getItem('emailForSignIn')
+      if (!email) {
+        showError('Email not found. Please sign in from the same device you requested the link on.')
+        return
+      }
+
+      try {
+        const result = await signInWithEmailLink(auth, email, window.location.href)
+        localStorage.removeItem('emailForSignIn')
+
+        const idToken = await result.user.getIdToken()
+        const resp = await fetch('/api/get-custom-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idToken }),
+        })
+
+        if (!resp.ok) throw new Error('Token exchange failed')
+        const { code } = await resp.json()
+        showCode(code)
+      } catch (err) {
+        console.error(err)
+        showError('Sign-in failed: ' + err.message)
+      }
+    }
+
+    run()
+  </script>
+</body>
+</html>

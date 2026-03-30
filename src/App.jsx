@@ -10,8 +10,8 @@ import ResetModal from './components/ResetModal'
 import UpdateBanner from './components/UpdateBanner'
 
 export default function App() {
-  const { user, emailSent, authError, signingIn, sendMagicLink, signOutUser } = useAuth()
-  const { progress, loading, catchFish, uncatchFish, updateNotes, resetAll } = useProgress(user?.uid)
+  const { user, emailSent, authError, codeError, loading, sendMagicLink, signInWithCode, signOutUser } = useAuth()
+  const { progress, loading: progressLoading, catchFish, uncatchFish, updateNotes, resetAll } = useProgress(user?.uid)
 
   const [modalFish, setModalFish] = useState(null)
   const [showReset, setShowReset] = useState(false)
@@ -31,9 +31,11 @@ export default function App() {
     return (
       <LoginScreen
         onSendLink={sendMagicLink}
+        onSignInWithCode={signInWithCode}
         emailSent={emailSent}
         authError={authError}
-        signingIn={signingIn}
+        codeError={codeError}
+        loading={loading}
       />
     )
   }
@@ -61,7 +63,7 @@ export default function App() {
       />
 
       <main className="px-4 py-4 pb-safe max-w-2xl mx-auto">
-        {loading ? (
+        {progressLoading ? (
           <div className="flex items-center justify-center py-20">
             <div className="font-minecraft text-mc-green animate-pulse" style={{ fontSize: '9px' }}>
               Loading progress…
