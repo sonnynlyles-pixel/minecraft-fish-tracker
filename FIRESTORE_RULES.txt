@@ -24,5 +24,14 @@ service cloud.firestore {
         resource.data.fromUid == request.auth.uid
       );
     }
+    match /activity/{userId}/feed/{activityId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /fishComments/{fishId}/comments/{commentId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
   }
 }

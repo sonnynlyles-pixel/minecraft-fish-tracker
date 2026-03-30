@@ -146,3 +146,53 @@ export function getTropicalFish() {
 }
 
 export const TOTAL_FISH = COMMON_FISH.length + 3072 // 3 + 3072 = 3075
+
+export const FISHING_TIPS = {
+  cod: {
+    tips: [
+      'Use Luck of the Sea III enchantment for better fish drops',
+      'Fish in rain for 20% faster catch speed',
+      'Found in cold, lukewarm, and normal ocean biomes',
+      'Can also be obtained by killing cod fish mobs',
+    ],
+    bestTime: 'Any time',
+    weather: 'Rain increases speed',
+    biomes: ['Ocean', 'Cold Ocean', 'Lukewarm Ocean', 'Deep Ocean'],
+  },
+  salmon: {
+    tips: [
+      'Found in rivers and frozen rivers',
+      'Can be caught by fishing or killing salmon mobs',
+      'More common in river biomes than oceans',
+      'Use Luck of the Sea to increase rare drop chances',
+    ],
+    bestTime: 'Any time',
+    weather: 'Rain increases speed',
+    biomes: ['River', 'Frozen River', 'Cold Ocean'],
+  },
+  pufferfish: {
+    tips: [
+      'Only found in warm and lukewarm ocean biomes',
+      'Used to brew Water Breathing potions',
+      'Damages players and mobs that touch it',
+      'Luck of the Sea III greatly improves catch rate',
+    ],
+    bestTime: 'Any time',
+    weather: 'Rain increases speed',
+    biomes: ['Warm Ocean', 'Lukewarm Ocean'],
+  },
+}
+
+export const TROPICAL_TIPS = {
+  tips: [
+    'Only found in warm ocean biomes',
+    'Can also spawn in lush cave pools underground',
+    'Use Luck of the Sea III for best chances when fishing',
+    'Each color/pattern combination is extremely rare when fishing',
+    'Most reliably found by exploring warm ocean biomes',
+    'Tropical fish mobs only spawn in warm oceans naturally',
+  ],
+  bestTime: 'Any time',
+  weather: 'Rain increases fishing speed',
+  biomes: ['Warm Ocean', 'Lush Caves'],
+}

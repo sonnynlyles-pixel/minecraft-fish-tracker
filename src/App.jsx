@@ -1,9 +1,12 @@
 import { useState, useMemo, useRef } from 'react'
+import { collection, addDoc } from 'firebase/firestore'
+import { db } from './firebase'
 import { useAuth } from './hooks/useAuth'
 import { useProgress } from './hooks/useProgress'
 import { useHaptic } from './hooks/useHaptic'
 import { useUserProfile } from './hooks/useUserProfile'
 import { useFriends } from './hooks/useFriends'
+import { useOnlineStatus } from './hooks/useOnlineStatus'
 import { COMMON_FISH, getTropicalFish, TOTAL_FISH } from './data/fish'
 import LoginScreen from './components/LoginScreen'
 import Header from './components/Header'
@@ -17,6 +20,8 @@ import FriendsScreen from './components/FriendsScreen'
 import LeaderboardScreen from './components/LeaderboardScreen'
 import CelebrationOverlay from './components/CelebrationOverlay'
 import OceanBackground from './components/OceanBackground'
+import BiomeGuideScreen from './components/BiomeGuideScreen'
+import OfflineBar from './components/OfflineBar'
 
 // Milestone thresholds (percentage of total fish)
 const MILESTONES = [25, 50, 75, 100]
@@ -49,6 +54,9 @@ export default function App() {
   const [showStats, setShowStats] = useState(false)
   const [celebration, setCelebration] = useState(null)
   const [activeTab, setActiveTab] = useState('fish')
+  const [showBiomeGuide, setShowBiomeGuide] = useState(false)
+
+  const isOnline = useOnlineStatus()
 
   // Track which milestones have already been triggered this session
   const seenMilestones = useRef(new Set())
@@ -98,6 +106,20 @@ export default function App() {
       trigger('medium')
       await catchFish(fish.id)
 
+      // Write activity feed entry
+      try {
+        await addDoc(collection(db, 'activity', user.uid, 'feed'), {
+          type: 'catch',
+          fishId: fish.id,
+          fishName: fish.name,
+          userId: user.uid,
+          username: profile?.username || 'Unknown',
+          timestamp: new Date().toISOString(),
+        })
+      } catch {
+        // silently fail — activity feed is non-critical
+      }
+
       // Build updated progress snapshot for milestone check
       const newProgress = { ...progress, [fish.id]: { caughtAt: new Date().toISOString() } }
 
@@ -123,6 +145,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-mc-bg text-mc-text" style={{ position: 'relative' }}>
+      <OfflineBar isOnline={isOnline} />
       {/* Ocean background — fixed, covers entire screen */}
       <OceanBackground />
       {/* Dark overlay to keep content readable over ocean */}
@@ -155,6 +178,29 @@ export default function App() {
               </div>
             ) : (
               <>
+                {/* Biome Guide banner */}
+                <button
+                  onClick={() => setShowBiomeGuide(true)}
+                  className="w-full flex items-center gap-3 px-4 py-3 mb-4"
+                  style={{
+                    background: 'rgba(0,0,0,0.60)',
+                    border: '1px solid #333333',
+                    borderRadius: '2px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span className="text-xl">🗺️</span>
+                  <div className="flex-1 text-left">
+                    <p className="font-minecraft" style={{ fontSize: '8px', color: '#55FF55', textShadow: '1px 1px #000' }}>
+                      Biome Guide
+                    </p>
+                    <p className="font-ui text-xs mt-0.5" style={{ color: '#AAAAAA' }}>
+                      Where to find each fish by biome
+                    </p>
+                  </div>
+                  <span className="font-ui text-xs" style={{ color: '#555555' }}>›</span>
+                </button>
+
                 <CategorySection
                   title="Common Fish"
                   icon="🐟"
@@ -257,6 +303,7 @@ export default function App() {
           onClose={() => setModalFish(null)}
           onToggle={handleToggle}
           onSaveNotes={updateNotes}
+          currentProfile={profile}
         />
       )}
 
@@ -282,6 +329,10 @@ export default function App() {
       )}
 
       <UpdateBanner />
+
+      {showBiomeGuide && (
+        <BiomeGuideScreen onClose={() => setShowBiomeGuide(false)} />
+      )}
     </div>
   )
 }

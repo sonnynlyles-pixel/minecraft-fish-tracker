@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore'
+import { collection, getDocs, doc, getDoc, query, orderBy, limit } from 'firebase/firestore'
 import { db } from '../firebase'
 import { TOTAL_FISH } from '../data/fish'
 import FriendDetailScreen from './FriendDetailScreen'
@@ -173,6 +173,7 @@ export default function FriendsScreen({
             loading={friendsLoading}
             onViewFriend={setSelectedFriend}
             onRemoveFriend={removeFriend}
+            currentUserId={currentUserId}
           />
         )}
         {subTab === 'requests' && (
@@ -222,9 +223,113 @@ export default function FriendsScreen({
   )
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function timeAgo(iso) {
+  if (!iso) return ''
+  const diff = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins} minute${mins === 1 ? '' : 's'} ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs} hour${hrs === 1 ? '' : 's'} ago`
+  const days = Math.floor(hrs / 24)
+  return `${days} day${days === 1 ? '' : 's'} ago`
+}
+
+function fishEmoji(fishId) {
+  if (!fishId) return '🐟'
+  if (fishId === 'cod' || fishId === 'salmon') return '🐟'
+  if (fishId === 'pufferfish') return '🐡'
+  return '🐠'
+}
+
+// ── Activity Feed ─────────────────────────────────────────────────────────────
+
+function ActivityFeed({ friends }) {
+  const [activities, setActivities] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (friends.length === 0) {
+      setLoading(false)
+      return
+    }
+
+    async function fetchActivity() {
+      setLoading(true)
+      try {
+        const allItems = []
+        await Promise.all(
+          friends.map(async (friend) => {
+            try {
+              const q = query(
+                collection(db, 'activity', friend.uid, 'feed'),
+                orderBy('timestamp', 'desc'),
+                limit(5)
+              )
+              const snap = await getDocs(q)
+              snap.docs.forEach((d) => allItems.push({ id: d.id, ...d.data() }))
+            } catch {
+              // ignore per-friend errors
+            }
+          })
+        )
+        // Sort merged results by timestamp descending, take top 10
+        allItems.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+        setActivities(allItems.slice(0, 10))
+      } catch {
+        setActivities([])
+      }
+      setLoading(false)
+    }
+
+    fetchActivity()
+  }, [friends])
+
+  if (friends.length === 0) return null
+
+  return (
+    <div
+      className="mx-4 mt-4 mb-2 p-4"
+      style={{
+        background: 'rgba(0,0,0,0.40)',
+        border: '1px solid #333333',
+        borderRadius: '2px',
+      }}
+    >
+      <p className="font-minecraft mb-3" style={{ fontSize: '8px', color: '#55FF55' }}>
+        Recent Activity
+      </p>
+      {loading ? (
+        <span className="font-minecraft text-mc-green animate-pulse" style={{ fontSize: '7px' }}>
+          Loading…
+        </span>
+      ) : activities.length === 0 ? (
+        <p className="font-ui text-xs" style={{ color: '#555555' }}>No activity yet</p>
+      ) : (
+        <div className="space-y-2">
+          {activities.map((item) => (
+            <div key={item.id + item.timestamp} className="flex items-start gap-2">
+              <span className="shrink-0 text-base leading-tight">{fishEmoji(item.fishId)}</span>
+              <p className="font-ui text-xs leading-snug" style={{ color: '#AAAAAA' }}>
+                <span style={{ color: '#FFFFFF', fontWeight: 600 }}>{item.username}</span>
+                {' caught '}
+                <span style={{ color: '#55FF55' }}>{item.fishName}</span>
+                {' · '}
+                <span style={{ color: '#555555' }}>{timeAgo(item.timestamp)}</span>
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Friends sub-tab ────────────────────────────────────────────────────────────
 
-function FriendsTab({ friends, loading, onViewFriend, onRemoveFriend }) {
+function FriendsTab({ friends, loading, onViewFriend, onRemoveFriend, currentUserId }) {
   const [removing, setRemoving] = useState(null)
 
   if (loading) {
@@ -249,19 +354,22 @@ function FriendsTab({ friends, loading, onViewFriend, onRemoveFriend }) {
   }
 
   return (
-    <div className="divide-y divide-mc-border">
-      {friends.map((friend) => (
-        <FriendCard
-          key={friend.uid}
-          friend={friend}
-          onView={() => onViewFriend(friend)}
-          onRemove={() => {
-            setRemoving(friend.uid)
-            onRemoveFriend(friend.uid).finally(() => setRemoving(null))
-          }}
-          isRemoving={removing === friend.uid}
-        />
-      ))}
+    <div>
+      <ActivityFeed friends={friends} currentUserId={currentUserId} />
+      <div className="divide-y divide-mc-border mt-2">
+        {friends.map((friend) => (
+          <FriendCard
+            key={friend.uid}
+            friend={friend}
+            onView={() => onViewFriend(friend)}
+            onRemove={() => {
+              setRemoving(friend.uid)
+              onRemoveFriend(friend.uid).finally(() => setRemoving(null))
+            }}
+            isRemoving={removing === friend.uid}
+          />
+        ))}
+      </div>
     </div>
   )
 }
