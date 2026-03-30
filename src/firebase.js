@@ -1,11 +1,10 @@
 import { initializeApp } from 'firebase/app'
-import { GoogleAuthProvider, indexedDBLocalPersistence, initializeAuth } from 'firebase/auth'
+import { indexedDBLocalPersistence, initializeAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
-  // Use your Vercel domain as authDomain so the redirect stays in the PWA on iOS
-  authDomain:        import.meta.env.VITE_APP_DOMAIN || import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
@@ -19,4 +18,3 @@ export const auth = initializeAuth(app, {
 })
 
 export const db = getFirestore(app)
-export const googleProvider = new GoogleAuthProvider()

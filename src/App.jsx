@@ -10,7 +10,7 @@ import ResetModal from './components/ResetModal'
 import UpdateBanner from './components/UpdateBanner'
 
 export default function App() {
-  const { user, signInWithGoogle, signOutUser } = useAuth()
+  const { user, emailSent, authError, signingIn, sendMagicLink, signOutUser } = useAuth()
   const { progress, loading, catchFish, uncatchFish, updateNotes, resetAll } = useProgress(user?.uid)
 
   const [modalFish, setModalFish] = useState(null)
@@ -18,8 +18,8 @@ export default function App() {
 
   const tropicalFish = useMemo(() => getTropicalFish(), [])
 
-  // ── Loading ──────────────────────────────────────────────────────────────
-  if (user === undefined) {
+  // Loading
+  if (user === undefined || signingIn) {
     return (
       <div className="min-h-screen bg-mc-bg flex items-center justify-center">
         <div className="font-minecraft text-mc-green animate-pulse" style={{ fontSize: '9px' }}>Loading…</div>
@@ -28,10 +28,16 @@ export default function App() {
   }
 
   if (!user) {
-    return <LoginScreen onSignIn={signInWithGoogle} />
+    return (
+      <LoginScreen
+        onSendLink={sendMagicLink}
+        emailSent={emailSent}
+        authError={authError}
+        signingIn={signingIn}
+      />
+    )
   }
 
-  // ── Handlers ─────────────────────────────────────────────────────────────
   async function handleToggle(fish) {
     if (progress[fish.id]) {
       await uncatchFish(fish.id)
@@ -45,7 +51,6 @@ export default function App() {
     setShowReset(false)
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-mc-bg text-mc-text">
       <Header
@@ -86,20 +91,16 @@ export default function App() {
         )}
       </main>
 
-      {/* Fish detail modal */}
       {modalFish && (
         <FishModal
           fish={modalFish}
           entry={progress[modalFish.id]}
           onClose={() => setModalFish(null)}
-          onToggle={async (f) => {
-            await handleToggle(f)
-          }}
+          onToggle={handleToggle}
           onSaveNotes={updateNotes}
         />
       )}
 
-      {/* Reset confirmation */}
       {showReset && (
         <ResetModal
           onConfirm={handleReset}
@@ -107,7 +108,6 @@ export default function App() {
         />
       )}
 
-      {/* Auto-update banner */}
       <UpdateBanner />
     </div>
   )
