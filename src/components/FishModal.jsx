@@ -52,7 +52,7 @@ export default function FishModal({ fish, entry, onClose, onToggle, onSaveNotes 
             </div>
             {fish.category === 'tropical' && (
               <p className="font-ui text-mc-muted text-xs mt-0.5">
-                {fish.sizeName} · {fish.patternName} · {fish.bodyColorName} / {fish.patternColorName}
+                {fish.sizeName} · {fish.patternName}
               </p>
             )}
             {caught && entry.caughtAt && (
@@ -68,20 +68,51 @@ export default function FishModal({ fish, entry, onClose, onToggle, onSaveNotes 
         <div className="p-5 space-y-4">
           {/* Color swatches for tropical */}
           {fish.category === 'tropical' && (
-            <div className="flex gap-3">
-              <div className="flex items-center gap-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-mc-surface border border-mc-border rounded-lg p-2.5 flex items-center gap-2">
                 <span
-                  className="w-5 h-5 rounded border border-white/20"
+                  className="w-6 h-6 rounded border border-white/20 shrink-0"
                   style={{ backgroundColor: fish.bodyColorHex }}
                 />
-                <span className="font-ui text-mc-muted text-xs">Body: {fish.bodyColorName}</span>
+                <div>
+                  <p className="font-ui text-mc-muted text-xs leading-tight">Body color</p>
+                  <p className="font-ui text-mc-text text-sm font-medium">{fish.bodyColorName}</p>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="bg-mc-surface border border-mc-border rounded-lg p-2.5 flex items-center gap-2">
                 <span
-                  className="w-5 h-5 rounded border border-white/20"
+                  className="w-6 h-6 rounded border border-white/20 shrink-0"
                   style={{ backgroundColor: fish.patternColorHex }}
                 />
-                <span className="font-ui text-mc-muted text-xs">Pattern: {fish.patternColorName}</span>
+                <div>
+                  <p className="font-ui text-mc-muted text-xs leading-tight">Pattern color</p>
+                  <p className="font-ui text-mc-text text-sm font-medium">{fish.patternColorName}</p>
+                </div>
+              </div>
+              <div className="bg-mc-surface border border-mc-border rounded-lg p-2.5">
+                <p className="font-ui text-mc-muted text-xs leading-tight">Size</p>
+                <p className="font-ui text-mc-text text-sm font-medium">{fish.sizeName}</p>
+              </div>
+              <div className="bg-mc-surface border border-mc-border rounded-lg p-2.5">
+                <p className="font-ui text-mc-muted text-xs leading-tight">Pattern</p>
+                <p className="font-ui text-mc-text text-sm font-medium">{fish.patternName}</p>
+              </div>
+            </div>
+          )}
+
+          {/* How to find — locations */}
+          {fish.locations && fish.locations.length > 0 && (
+            <div>
+              <p className="font-ui text-mc-muted text-xs mb-1.5">How to find</p>
+              <div className="flex flex-wrap gap-1.5">
+                {fish.locations.map((loc, i) => (
+                  <span
+                    key={i}
+                    className="text-xs bg-green-900/40 text-mc-green border border-mc-green/30 rounded-full px-2.5 py-0.5 font-ui"
+                  >
+                    {loc}
+                  </span>
+                ))}
               </div>
             </div>
           )}

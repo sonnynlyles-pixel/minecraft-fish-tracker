@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import FishSprite from './FishSprite'
+import { useHaptic } from '../hooks/useHaptic'
 
 function formatDate(iso) {
   if (!iso) return null
@@ -9,14 +11,28 @@ function formatDate(iso) {
 
 export default function FishCard({ fish, entry, onToggle, onOpenModal }) {
   const caught = !!entry
+  const [justCaught, setJustCaught] = useState(false)
+  const [checkAnim, setCheckAnim] = useState(false)
+  const { trigger } = useHaptic()
+
+  async function handleCheck(e) {
+    e.stopPropagation()
+    trigger('light')
+    if (!caught) {
+      // About to catch — trigger animation
+      setJustCaught(true)
+      setCheckAnim(true)
+      setTimeout(() => setCheckAnim(false), 400)
+      setTimeout(() => setJustCaught(false), 1000)
+    }
+    await onToggle(fish)
+  }
 
   return (
     <div
       className={`relative flex items-center gap-3 p-3 rounded-lg border transition-all duration-150 cursor-pointer select-none
-        ${caught
-          ? 'bg-mc-card border-mc-green/40 shadow-sm'
-          : 'bg-mc-card border-mc-border opacity-70 hover:opacity-100'
-        }`}
+        ${caught ? 'bg-mc-card border-mc-green/40 shadow-sm' : 'bg-mc-card border-mc-border opacity-70 hover:opacity-100'}
+        ${justCaught ? 'animate-card-bounce animate-green-glow' : ''}`}
       onClick={() => onOpenModal(fish)}
     >
       {/* Sprite */}
@@ -64,8 +80,9 @@ export default function FishCard({ fish, entry, onToggle, onOpenModal }) {
       {/* Checkbox */}
       <button
         className={`shrink-0 w-6 h-6 rounded border-2 flex items-center justify-center transition-all
-          ${caught ? 'bg-mc-green border-mc-green' : 'border-mc-border hover:border-mc-green'}`}
-        onClick={(e) => { e.stopPropagation(); onToggle(fish) }}
+          ${caught ? 'bg-mc-green border-mc-green' : 'border-mc-border hover:border-mc-green'}
+          ${checkAnim ? 'animate-check-pop' : ''}`}
+        onClick={handleCheck}
         aria-label={caught ? 'Unmark as caught' : 'Mark as caught'}
       >
         {caught && <span className="text-mc-bg text-xs font-bold">✓</span>}

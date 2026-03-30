@@ -4,10 +4,18 @@ import FilterBar, { DEFAULT_FILTERS } from './FilterBar'
 
 const PAGE_SIZE = 50
 
+const SORT_OPTIONS = [
+  { value: 'default',  label: 'Default' },
+  { value: 'name',     label: 'Name A–Z' },
+  { value: 'recent',   label: 'Recently caught' },
+  { value: 'uncaught', label: 'Uncaught first' },
+]
+
 export default function CategorySection({ title, icon, fish, progress, onToggle, onOpenModal, showFilters }) {
   const [open, setOpen] = useState(true)
   const [filters, setFilters] = useState(DEFAULT_FILTERS)
   const [page, setPage] = useState(1)
+  const [sort, setSort] = useState('default')
 
   const filtered = useMemo(() => {
     const s = filters.search.toLowerCase()
@@ -27,12 +35,42 @@ export default function CategorySection({ title, icon, fish, progress, onToggle,
     })
   }, [fish, filters, progress])
 
-  const paginated = filtered.slice(0, page * PAGE_SIZE)
+  const sorted = useMemo(() => {
+    const arr = [...filtered]
+    if (sort === 'name') {
+      arr.sort((a, b) => a.name.localeCompare(b.name))
+    } else if (sort === 'recent') {
+      arr.sort((a, b) => {
+        const aDate = progress[a.id]?.caughtAt || null
+        const bDate = progress[b.id]?.caughtAt || null
+        if (aDate && bDate) return new Date(bDate) - new Date(aDate)
+        if (aDate) return -1
+        if (bDate) return 1
+        return 0
+      })
+    } else if (sort === 'uncaught') {
+      arr.sort((a, b) => {
+        const aCaught = !!progress[a.id]
+        const bCaught = !!progress[b.id]
+        if (!aCaught && bCaught) return -1
+        if (aCaught && !bCaught) return 1
+        return 0
+      })
+    }
+    return arr
+  }, [filtered, sort, progress])
+
+  const paginated = sorted.slice(0, page * PAGE_SIZE)
   const caught = fish.filter((f) => progress[f.id]).length
   const pct = Math.round((caught / fish.length) * 100)
 
   function handleFiltersChange(newFilters) {
     setFilters(newFilters)
+    setPage(1)
+  }
+
+  function handleSortChange(val) {
+    setSort(val)
     setPage(1)
   }
 
@@ -72,6 +110,26 @@ export default function CategorySection({ title, icon, fish, progress, onToggle,
             />
           )}
 
+          {/* Sort controls */}
+          <div className="flex items-center gap-2 mb-3">
+            <span className="font-ui text-mc-muted text-xs shrink-0">Sort:</span>
+            <div className="flex gap-1 flex-wrap">
+              {SORT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => handleSortChange(opt.value)}
+                  className={`font-ui text-xs px-2.5 py-1 rounded border transition-colors
+                    ${sort === opt.value
+                      ? 'bg-mc-green/20 border-mc-green/50 text-mc-green'
+                      : 'bg-mc-surface border-mc-border text-mc-muted hover:text-mc-text hover:border-mc-muted'
+                    }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {filtered.length === 0 ? (
             <div className="text-center py-12 font-ui text-mc-muted text-sm">
               No fish match your filters.
@@ -87,12 +145,12 @@ export default function CategorySection({ title, icon, fish, progress, onToggle,
                   onOpenModal={onOpenModal}
                 />
               ))}
-              {paginated.length < filtered.length && (
+              {paginated.length < sorted.length && (
                 <button
                   onClick={() => setPage((p) => p + 1)}
                   className="w-full py-3 font-ui text-mc-blue text-sm hover:text-blue-300 border border-mc-border rounded-lg hover:border-mc-blue transition-colors"
                 >
-                  Load more ({filtered.length - paginated.length} remaining)
+                  Load more ({sorted.length - paginated.length} remaining)
                 </button>
               )}
             </div>

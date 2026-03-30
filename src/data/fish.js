@@ -78,22 +78,27 @@ export const COMMON_FISH = [
     name: 'Cod',
     category: 'common',
     sprite: '/sprites/cod.png',
+    locations: ['Any ocean biome', 'Fishing in cold/lukewarm oceans'],
   },
   {
     id: 'salmon',
     name: 'Salmon',
     category: 'common',
     sprite: '/sprites/salmon.png',
+    locations: ['Rivers', 'Frozen rivers', 'Fishing in rivers'],
   },
   {
     id: 'pufferfish',
     name: 'Pufferfish',
     category: 'common',
     sprite: '/sprites/pufferfish.png',
+    locations: ['Warm/lukewarm oceans', 'Fishing in warm oceans'],
   },
 ]
 
 export const TROPICAL_ITEM_SPRITE = '/sprites/tropical_fish.png'
+
+export const TROPICAL_LOCATIONS = ['Warm oceans', 'Lush cave pools', 'Fishing in warm oceans']
 
 // ── Generate all 3,072 tropical fish variants ────────────────────────────────
 export function generateTropicalFish() {
@@ -124,6 +129,7 @@ export function generateTropicalFish() {
             bodyColorName: bodyColorObj.name,
             patternColorName: patternColorObj.name,
             sizeName: SIZES[size].name,
+            locations: TROPICAL_LOCATIONS,
           })
         }
       }

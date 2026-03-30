@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 
 // Minecraft dye color RGB values
 const DYE_RGB = [
@@ -68,8 +68,8 @@ async function drawTropicalFish(canvas, fish, locked) {
       loadImage(`/sprites/tropical_${sizeKey}_pattern_${patternNum}.png`),
     ])
 
-    const bodyDye  = locked ? [80, 80, 80]  : DYE_RGB[fish.bodyColor]
-    const patDye   = locked ? [60, 60, 60]  : DYE_RGB[fish.patternColor]
+    const bodyDye  = locked ? [30, 30, 30]  : DYE_RGB[fish.bodyColor]
+    const patDye   = locked ? [20, 20, 20]  : DYE_RGB[fish.patternColor]
 
     const coloredBase    = colorizeImage(baseImg,    bodyDye)
     const coloredPattern = colorizeImage(patternImg, patDye)
@@ -86,8 +86,11 @@ async function drawTropicalFish(canvas, fish, locked) {
     ctx.drawImage(coloredPattern, offX, offY, drawW, drawH)
 
     if (locked) {
-      ctx.fillStyle = 'rgba(0,0,0,0.5)'
+      // Solid dark overlay to create silhouette effect
+      ctx.globalCompositeOperation = 'source-atop'
+      ctx.fillStyle = 'rgba(0,0,0,0.75)'
       ctx.fillRect(0, 0, canvas.width, canvas.height)
+      ctx.globalCompositeOperation = 'source-over'
     }
   } catch {
     // Fallback: colored rectangle
@@ -98,33 +101,21 @@ async function drawTropicalFish(canvas, fish, locked) {
 
 // ── Common fish (static sprite, pixel-art scaled) ─────────────────────────
 function CommonFishSprite({ fish, size, locked }) {
-  const canvasRef = useRef()
-
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    ctx.clearRect(0, 0, size, size)
-
-    loadImage(fish.sprite).then((img) => {
-      ctx.imageSmoothingEnabled = false
-      const scale = Math.floor(size / Math.max(img.width, img.height))
-      const drawW = img.width  * scale
-      const drawH = img.height * scale
-      const offX  = Math.floor((size - drawW) / 2)
-      const offY  = Math.floor((size - drawH) / 2)
-      ctx.drawImage(img, offX, offY, drawW, drawH)
-      if (locked) {
-        ctx.fillStyle = 'rgba(0,0,0,0.6)'
-        ctx.fillRect(0, 0, size, size)
-      }
-    }).catch(() => {
-      ctx.fillStyle = '#374151'
-      ctx.fillRect(4, 4, size - 8, size - 8)
-    })
-  }, [fish, size, locked])
-
-  return <canvas ref={canvasRef} width={size} height={size} style={{ imageRendering: 'pixelated' }} />
+  return (
+    <img
+      src={fish.sprite}
+      alt={fish.name}
+      width={size}
+      height={size}
+      style={{
+        imageRendering: 'pixelated',
+        width: size,
+        height: size,
+        objectFit: 'contain',
+        filter: locked ? 'brightness(0) opacity(0.25)' : 'none',
+      }}
+    />
+  )
 }
 
 // ── Tropical fish (Canvas + color multiply) ───────────────────────────────
