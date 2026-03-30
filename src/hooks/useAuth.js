@@ -1,27 +1,15 @@
 import { useState, useEffect } from 'react'
 import {
   onAuthStateChanged,
-  sendSignInLinkToEmail,
-  signInWithCustomToken,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
   signOut,
 } from 'firebase/auth'
 import { auth } from '../firebase'
 
-const APP_URL = import.meta.env.VITE_APP_DOMAIN
-  ? `https://${import.meta.env.VITE_APP_DOMAIN}`
-  : window.location.origin
-
-// Magic link goes to /auth.html (opens in Safari), NOT back to the PWA
-const ACTION_CODE_SETTINGS = {
-  url: `${APP_URL}/auth.html`,
-  handleCodeInApp: true,
-}
-
 export function useAuth() {
   const [user, setUser] = useState(undefined)
-  const [emailSent, setEmailSent] = useState(false)
   const [authError, setAuthError] = useState(null)
-  const [codeError, setCodeError] = useState(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -29,58 +17,52 @@ export function useAuth() {
     return unsub
   }, [])
 
-  async function sendMagicLink(email) {
+  async function signIn(email, password) {
     setAuthError(null)
     setLoading(true)
     try {
-      await sendSignInLinkToEmail(auth, email, ACTION_CODE_SETTINGS)
-      window.localStorage.setItem('emailForSignIn', email)
-      setEmailSent(true)
+      await signInWithEmailAndPassword(auth, email, password)
     } catch (err) {
-      console.error('Send magic link error:', err)
-      setAuthError('Failed to send email. Please check the address and try again.')
+      setAuthError(friendlyError(err.code))
     } finally {
       setLoading(false)
     }
   }
 
-  async function signInWithCode(code) {
-    setCodeError(null)
+  async function signUp(email, password) {
+    setAuthError(null)
     setLoading(true)
     try {
-      const resp = await fetch('/api/redeem-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: code.trim().toUpperCase() }),
-      })
-      const data = await resp.json()
-      if (!resp.ok) throw new Error(data.error || 'Invalid code')
-      await signInWithCustomToken(auth, data.customToken)
+      await createUserWithEmailAndPassword(auth, email, password)
     } catch (err) {
-      console.error('Code sign-in error:', err)
-      setCodeError(err.message)
+      setAuthError(friendlyError(err.code))
     } finally {
       setLoading(false)
     }
   }
 
   async function signOutUser() {
-    try {
-      await signOut(auth)
-      setEmailSent(false)
-    } catch (err) {
-      console.error('Sign-out error:', err)
-    }
+    await signOut(auth)
   }
 
-  return {
-    user,
-    emailSent,
-    authError,
-    codeError,
-    loading,
-    sendMagicLink,
-    signInWithCode,
-    signOutUser,
+  return { user, authError, loading, signIn, signUp, signOutUser }
+}
+
+function friendlyError(code) {
+  switch (code) {
+    case 'auth/invalid-credential':
+    case 'auth/wrong-password':
+    case 'auth/user-not-found':
+      return 'Incorrect email or password.'
+    case 'auth/email-already-in-use':
+      return 'An account with this email already exists. Try signing in.'
+    case 'auth/weak-password':
+      return 'Password must be at least 6 characters.'
+    case 'auth/invalid-email':
+      return 'Please enter a valid email address.'
+    case 'auth/too-many-requests':
+      return 'Too many attempts. Please wait a moment and try again.'
+    default:
+      return 'Something went wrong. Please try again.'
   }
 }

@@ -1,20 +1,17 @@
 import { useState } from 'react'
 
-export default function LoginScreen({ onSendLink, onSignInWithCode, emailSent, authError, codeError, loading }) {
-  const [email, setEmail]     = useState('')
-  const [code, setCode]       = useState('')
-  const [showCode, setShowCode] = useState(false)
+export default function LoginScreen({ onSignIn, onSignUp, authError, loading }) {
+  const [mode, setMode] = useState('signin') // 'signin' | 'signup'
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
-  async function handleEmailSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
-    if (!email) return
-    await onSendLink(email)
-  }
-
-  async function handleCodeSubmit(e) {
-    e.preventDefault()
-    if (!code) return
-    await onSignInWithCode(code)
+    if (mode === 'signin') {
+      await onSignIn(email, password)
+    } else {
+      await onSignUp(email, password)
+    }
   }
 
   return (
@@ -46,99 +43,69 @@ export default function LoginScreen({ onSendLink, onSignInWithCode, emailSent, a
           ))}
         </div>
 
-        {/* ── Email sent confirmation ── */}
-        {emailSent && !showCode ? (
-          <div className="w-full bg-mc-card border border-mc-green/40 rounded-xl p-5 text-center space-y-4">
-            <div className="text-3xl">📧</div>
-            <p className="font-minecraft text-mc-green" style={{ fontSize: '9px' }}>Check your email!</p>
-            <p className="font-ui text-mc-muted text-sm">
-              Tap the link in the email. Safari will open and show you a <strong className="text-mc-text">6-letter code</strong>.
-              Come back here and tap "Have a code?" to enter it.
-            </p>
+        {/* Tab toggle */}
+        <div className="w-full flex bg-mc-surface border border-mc-border rounded-lg p-1 gap-1">
+          {['signin', 'signup'].map((m) => (
             <button
-              onClick={() => setShowCode(true)}
-              className="w-full bg-mc-green text-mc-bg font-minecraft py-3 rounded-lg active:scale-95 transition-transform"
-              style={{ fontSize: '9px' }}
+              key={m}
+              onClick={() => setMode(m)}
+              className={`flex-1 py-2 rounded-md font-minecraft transition-all text-center
+                ${mode === m
+                  ? 'bg-mc-green text-mc-bg'
+                  : 'text-mc-muted hover:text-mc-text'
+                }`}
+              style={{ fontSize: '8px' }}
             >
-              Have a code?
+              {m === 'signin' ? 'Sign In' : 'Sign Up'}
             </button>
-            <button
-              onClick={() => window.location.reload()}
-              className="font-ui text-mc-muted text-xs underline"
-            >
-              Start over
-            </button>
+          ))}
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="w-full space-y-3">
+          <div>
+            <label className="font-ui text-mc-muted text-xs mb-1.5 block">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              required
+              autoCapitalize="none"
+              autoCorrect="off"
+              className="w-full bg-mc-card border border-mc-border rounded-lg px-4 py-3 font-ui text-sm text-mc-text placeholder:text-mc-muted/50 focus:outline-none focus:border-mc-green"
+            />
+          </div>
+          <div>
+            <label className="font-ui text-mc-muted text-xs mb-1.5 block">
+              Password {mode === 'signup' && <span className="text-mc-muted">(min 6 characters)</span>}
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+              className="w-full bg-mc-card border border-mc-border rounded-lg px-4 py-3 font-ui text-sm text-mc-text placeholder:text-mc-muted/50 focus:outline-none focus:border-mc-green"
+            />
           </div>
 
-        ) : showCode ? (
-          /* ── Code entry ── */
-          <form onSubmit={handleCodeSubmit} className="w-full space-y-3">
-            <div>
-              <label className="font-ui text-mc-muted text-xs mb-1.5 block">
-                Enter the 6-letter code from Safari
-              </label>
-              <input
-                type="text"
-                value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
-                placeholder="ABC123"
-                maxLength={6}
-                autoFocus
-                className="w-full bg-mc-card border border-mc-border rounded-lg px-4 py-4 font-minecraft text-mc-green text-center text-2xl tracking-widest placeholder:text-mc-muted/30 focus:outline-none focus:border-mc-green"
-              />
-            </div>
-            {codeError && <p className="font-ui text-red-400 text-xs">{codeError}</p>}
-            <button
-              type="submit"
-              disabled={loading || code.length < 6}
-              className="w-full bg-mc-green hover:bg-green-400 disabled:opacity-50 text-mc-bg font-minecraft py-4 rounded-lg transition-all active:scale-95 shadow-mc"
-              style={{ fontSize: '10px' }}
-            >
-              {loading ? 'Signing in…' : 'Sign In'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowCode(false)}
-              className="w-full font-ui text-mc-muted text-xs underline"
-            >
-              Back
-            </button>
-          </form>
+          {authError && (
+            <p className="font-ui text-red-400 text-xs">{authError}</p>
+          )}
 
-        ) : (
-          /* ── Email form ── */
-          <form onSubmit={handleEmailSubmit} className="w-full space-y-3">
-            <div>
-              <label className="font-ui text-mc-muted text-xs mb-1.5 block">
-                Enter your email to sign in
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
-                className="w-full bg-mc-card border border-mc-border rounded-lg px-4 py-3 font-ui text-sm text-mc-text placeholder:text-mc-muted/50 focus:outline-none focus:border-mc-green"
-              />
-            </div>
-            {authError && <p className="font-ui text-red-400 text-xs">{authError}</p>}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-mc-green hover:bg-green-400 disabled:opacity-50 text-mc-bg font-minecraft py-4 px-6 rounded-lg transition-all active:scale-95 shadow-mc"
-              style={{ fontSize: '10px' }}
-            >
-              {loading ? 'Sending…' : 'Send Sign-in Link'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowCode(true)}
-              className="w-full font-ui text-mc-muted text-xs underline"
-            >
-              Already have a code?
-            </button>
-          </form>
-        )}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-mc-green hover:bg-green-400 disabled:opacity-50 text-mc-bg font-minecraft py-4 px-6 rounded-lg transition-all active:scale-95 shadow-mc"
+            style={{ fontSize: '10px' }}
+          >
+            {loading
+              ? (mode === 'signin' ? 'Signing in…' : 'Creating account…')
+              : (mode === 'signin' ? 'Sign In' : 'Create Account')
+            }
+          </button>
+        </form>
 
         <p className="font-ui text-mc-muted text-xs text-center">
           Your progress syncs across all devices.

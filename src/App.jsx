@@ -10,7 +10,7 @@ import ResetModal from './components/ResetModal'
 import UpdateBanner from './components/UpdateBanner'
 
 export default function App() {
-  const { user, emailSent, authError, codeError, loading, sendMagicLink, signInWithCode, signOutUser } = useAuth()
+  const { user, authError, loading, signIn, signUp, signOutUser } = useAuth()
   const { progress, loading: progressLoading, catchFish, uncatchFish, updateNotes, resetAll } = useProgress(user?.uid)
 
   const [modalFish, setModalFish] = useState(null)
@@ -18,8 +18,7 @@ export default function App() {
 
   const tropicalFish = useMemo(() => getTropicalFish(), [])
 
-  // Loading
-  if (user === undefined || loading) {
+  if (user === undefined) {
     return (
       <div className="min-h-screen bg-mc-bg flex items-center justify-center">
         <div className="font-minecraft text-mc-green animate-pulse" style={{ fontSize: '9px' }}>Loading…</div>
@@ -30,11 +29,9 @@ export default function App() {
   if (!user) {
     return (
       <LoginScreen
-        onSendLink={sendMagicLink}
-        onSignInWithCode={signInWithCode}
-        emailSent={emailSent}
+        onSignIn={signIn}
+        onSignUp={signUp}
         authError={authError}
-        codeError={codeError}
         loading={loading}
       />
     )
