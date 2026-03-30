@@ -3,6 +3,7 @@ import { useAuth } from './hooks/useAuth'
 import { useProgress } from './hooks/useProgress'
 import { useHaptic } from './hooks/useHaptic'
 import { useUserProfile } from './hooks/useUserProfile'
+import { useFriends } from './hooks/useFriends'
 import { COMMON_FISH, getTropicalFish, TOTAL_FISH } from './data/fish'
 import LoginScreen from './components/LoginScreen'
 import Header from './components/Header'
@@ -31,6 +32,16 @@ export default function App() {
   const { progress, loading: progressLoading, catchFish, uncatchFish, updateNotes, resetAll } = useProgress(user?.uid)
   const { trigger } = useHaptic()
   const { profile, setUsername, usernameError } = useUserProfile(user ?? null)
+  const {
+    friends,
+    pendingReceived,
+    pendingSent,
+    loading: friendsLoading,
+    sendFriendRequest,
+    acceptRequest,
+    declineRequest,
+    removeFriend,
+  } = useFriends(user ?? null, profile)
 
   const [modalFish, setModalFish] = useState(null)
   const [showReset, setShowReset] = useState(false)
@@ -106,6 +117,8 @@ export default function App() {
     seenMilestones.current.clear()
   }
 
+  const pendingReceivedCount = pendingReceived.length
+
   return (
     <div className="min-h-screen bg-mc-bg text-mc-text">
       <Header
@@ -157,6 +170,15 @@ export default function App() {
           <FriendsScreen
             currentUserId={user.uid}
             inline={true}
+            friends={friends}
+            pendingReceived={pendingReceived}
+            pendingSent={pendingSent}
+            friendsLoading={friendsLoading}
+            sendFriendRequest={sendFriendRequest}
+            acceptRequest={acceptRequest}
+            declineRequest={declineRequest}
+            removeFriend={removeFriend}
+            currentProfile={profile}
           />
         )}
 
@@ -181,11 +203,18 @@ export default function App() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 flex flex-col items-center py-3 transition-colors ${
+            className={`flex-1 flex flex-col items-center py-3 transition-colors relative ${
               activeTab === tab.id ? 'text-mc-green' : 'text-mc-muted'
             }`}
           >
-            <span className="text-xl leading-none">{tab.emoji}</span>
+            <span className="text-xl leading-none relative inline-block">
+              {tab.emoji}
+              {tab.id === 'social' && pendingReceivedCount > 0 && (
+                <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center px-1 leading-none font-ui font-bold">
+                  {pendingReceivedCount}
+                </span>
+              )}
+            </span>
             <span className="font-ui text-xs mt-1">{tab.label}</span>
           </button>
         ))}
