@@ -20,7 +20,6 @@ const DYE_RGB = [
   [ 29,  29,  33], // 15 Black
 ]
 
-// Cache loaded images to avoid re-fetching
 const imgCache = {}
 
 function loadImage(src) {
@@ -35,71 +34,26 @@ function loadImage(src) {
   return promise
 }
 
-// Colorize an image by multiplying each pixel's RGB by the dye color
+// Colorize a grayscale-ish image by multiplying each pixel by a dye color
 function colorizeImage(img, dyeRgb) {
-  const offscreen = document.createElement('canvas')
-  offscreen.width = img.width
-  offscreen.height = img.height
-  const ctx = offscreen.getContext('2d')
+  const off = document.createElement('canvas')
+  off.width = img.width
+  off.height = img.height
+  const ctx = off.getContext('2d')
   ctx.drawImage(img, 0, 0)
   const data = ctx.getImageData(0, 0, img.width, img.height)
   const [dr, dg, db] = dyeRgb
   for (let i = 0; i < data.data.length; i += 4) {
-    if (data.data[i + 3] < 10) continue // skip transparent
+    if (data.data[i + 3] < 10) continue
     data.data[i]     = Math.round(data.data[i]     * dr / 255)
     data.data[i + 1] = Math.round(data.data[i + 1] * dg / 255)
     data.data[i + 2] = Math.round(data.data[i + 2] * db / 255)
   }
   ctx.putImageData(data, 0, 0)
-  return offscreen
+  return off
 }
 
-// Draw a tropical fish onto a canvas
-async function drawTropicalFish(canvas, fish, locked) {
-  const ctx = canvas.getContext('2d')
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-  const sizeKey = fish.size === 0 ? 'a' : 'b'
-  const patternNum = fish.pattern + 1
-
-  try {
-    const [baseImg, patternImg] = await Promise.all([
-      loadImage(`/sprites/tropical_${sizeKey}.png`),
-      loadImage(`/sprites/tropical_${sizeKey}_pattern_${patternNum}.png`),
-    ])
-
-    const bodyDye  = locked ? [30, 30, 30]  : DYE_RGB[fish.bodyColor]
-    const patDye   = locked ? [20, 20, 20]  : DYE_RGB[fish.patternColor]
-
-    const coloredBase    = colorizeImage(baseImg,    bodyDye)
-    const coloredPattern = colorizeImage(patternImg, patDye)
-
-    // Scale up to canvas size (pixel art — nearest neighbor)
-    ctx.imageSmoothingEnabled = false
-    const scale = Math.floor(canvas.width / baseImg.width)
-    const drawW = baseImg.width  * scale
-    const drawH = baseImg.height * scale
-    const offX = Math.floor((canvas.width  - drawW) / 2)
-    const offY = Math.floor((canvas.height - drawH) / 2)
-
-    ctx.drawImage(coloredBase,    offX, offY, drawW, drawH)
-    ctx.drawImage(coloredPattern, offX, offY, drawW, drawH)
-
-    if (locked) {
-      // Solid dark overlay to create silhouette effect
-      ctx.globalCompositeOperation = 'source-atop'
-      ctx.fillStyle = 'rgba(0,0,0,0.75)'
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
-      ctx.globalCompositeOperation = 'source-over'
-    }
-  } catch {
-    // Fallback: colored rectangle
-    ctx.fillStyle = locked ? '#374151' : fish.bodyColorHex
-    ctx.fillRect(4, 4, canvas.width - 8, canvas.height - 8)
-  }
-}
-
-// ── Common fish (static sprite, pixel-art scaled) ─────────────────────────
+// ── Common fish ───────────────────────────────────────────────────────────
 function CommonFishSprite({ fish, size, locked }) {
   return (
     <img
@@ -118,17 +72,50 @@ function CommonFishSprite({ fish, size, locked }) {
   )
 }
 
-// ── Tropical fish (Canvas + color multiply) ───────────────────────────────
+// ── Tropical fish — item sprite colorized with body color ─────────────────
 function TropicalFishSprite({ fish, size, locked }) {
   const canvasRef = useRef()
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    drawTropicalFish(canvas, fish, locked)
+    const ctx = canvas.getContext('2d')
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    const bodyDye = locked ? [40, 40, 40] : DYE_RGB[fish.bodyColor]
+
+    loadImage('/sprites/tropical_fish.png').then((img) => {
+      const colored = colorizeImage(img, bodyDye)
+
+      ctx.imageSmoothingEnabled = false
+      const scale = Math.floor(canvas.width / img.width)
+      const drawW = img.width  * scale
+      const drawH = img.height * scale
+      const offX  = Math.floor((canvas.width  - drawW) / 2)
+      const offY  = Math.floor((canvas.height - drawH) / 2)
+
+      ctx.drawImage(colored, offX, offY, drawW, drawH)
+
+      if (locked) {
+        ctx.globalCompositeOperation = 'source-atop'
+        ctx.fillStyle = 'rgba(0,0,0,0.65)'
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+        ctx.globalCompositeOperation = 'source-over'
+      }
+    }).catch(() => {
+      ctx.fillStyle = locked ? '#374151' : fish.bodyColorHex
+      ctx.fillRect(4, 4, canvas.width - 8, canvas.height - 8)
+    })
   }, [fish, size, locked])
 
-  return <canvas ref={canvasRef} width={size} height={size} style={{ imageRendering: 'pixelated' }} />
+  return (
+    <canvas
+      ref={canvasRef}
+      width={size}
+      height={size}
+      style={{ imageRendering: 'pixelated' }}
+    />
+  )
 }
 
 // ── Main export ───────────────────────────────────────────────────────────
